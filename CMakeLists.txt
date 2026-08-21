@@ -39,5 +39,8 @@ target_link_libraries(aethera_image_test PRIVATE aethera)
 add_executable(aethera_semantic_test tests/semantic_test.cpp)
 target_link_libraries(aethera_semantic_test PRIVATE aethera)
 
+add_executable(aethera_skeleton_physics_test tests/skeleton_physics_test.cpp)
+target_link_libraries(aethera_skeleton_physics_test PRIVATE aethera)
+
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
