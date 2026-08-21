@@ -19,6 +19,7 @@ add_library(aethera
     src/image_reconstruction.cpp
     src/image_renderer.cpp
     src/ik.cpp
+    src/masked_image.cpp
     src/object.cpp
     src/onnx_vision.cpp
     src/physics.cpp
