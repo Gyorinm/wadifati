@@ -9,6 +9,7 @@ find_package(SDL2 REQUIRED)
 
 add_library(aethera
     src/engine.cpp
+    src/object.cpp
     src/physics.cpp
     src/renderer.cpp
 )
