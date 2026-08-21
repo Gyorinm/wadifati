@@ -29,19 +29,33 @@ struct ImagePart {
     float opacity{1.0f};
 };
 
+enum class ImageFileFormat {
+    Unknown,
+    Ppm,
+    Bmp,
+    Png,
+    Jpeg,
+    Webp
+};
+
 class ImageAsset {
 public:
     ImageAsset() = default;
     explicit ImageAsset(std::string source_path) : source_path_(std::move(source_path)) {}
 
+    bool load(const std::string& path);
     bool load_ppm(const std::string& path);
+    bool load_bmp(const std::string& path);
+
     bool valid() const { return image_.valid(); }
     const ImageRgba8& image() const { return image_; }
     const std::string& source_path() const { return source_path_; }
+    ImageFileFormat format() const { return format_; }
 
 private:
     std::string source_path_;
     ImageRgba8 image_;
+    ImageFileFormat format_{ImageFileFormat::Unknown};
 };
 
 } // namespace aethera
