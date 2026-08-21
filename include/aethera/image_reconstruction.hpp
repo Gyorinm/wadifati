@@ -2,9 +2,11 @@
 
 #include <cstddef>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "aethera/image_object.hpp"
+#include "aethera/mesh.hpp"
 #include "aethera/vision_model.hpp"
 
 namespace aethera {
@@ -17,6 +19,9 @@ struct ReconstructedPart {
     Vec2 pivot{0.5f, 0.5f};
     Vec2 position{};
     float confidence{0.0f};
+    std::vector<MeshVertex> mesh_vertices;
+    std::vector<std::uint32_t> mesh_indices;
+    std::vector<MeshBone> bones;
 };
 
 struct ImageReconstructionResult {
