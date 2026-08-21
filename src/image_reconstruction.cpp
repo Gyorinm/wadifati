@@ -4,7 +4,6 @@
 #include "aethera/mesh_generator.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <limits>
 #include <utility>
 
@@ -68,24 +67,25 @@ ImageReconstructionResult ImageReconstructor::reconstruct(const ImageRgba8& imag
         part.pivot = {0.5f, 0.5f};
         part.position = {part.bounds.x + part.bounds.w * 0.5f, part.bounds.y + part.bounds.h * 0.5f};
         part.confidence = kp != nullptr ? kp->confidence : 0.0f;
+        part.layer = std::move(layer);
 
-        const int columns = std::clamp(layer.width / 32, 4, 24);
-        const int rows = std::clamp(layer.height / 32, 4, 24);
-        part.mesh_vertices = MeshGenerator::grid_vertices(layer, columns, rows);
+        const int columns = std::clamp(part.layer.width / 32, 4, 24);
+        const int rows = std::clamp(part.layer.height / 32, 4, 24);
+        part.mesh_vertices = MeshGenerator::grid_vertices(part.layer, columns, rows);
         part.mesh_indices = MeshGenerator::grid_indices(columns, rows);
-        part.bones = build_bones_from_keypoints(output.keypoints, layer.width, layer.height);
-        assign_layer_bone_weights(part.mesh_vertices, part.bones, output.keypoints, layer.width, layer.height);
-        result.parts.push_back(std::move(part));
+        part.bones = build_bones_from_keypoints(output.keypoints, part.layer.width, part.layer.height);
+        assign_layer_bone_weights(part.mesh_vertices, part.bones, output.keypoints, part.layer.width, part.layer.height);
 
         ImageNode node;
-        node.name = result.parts.back().name;
-        node.visual.name = node.name;
-        node.visual.source = result.parts.back().bounds;
-        node.visual.pivot = result.parts.back().pivot;
-        node.visual.asset = std::move(layer);
-        node.local.position = result.parts.back().position;
+        node.name = part.name;
+        node.visual.name = part.name;
+        node.visual.source = part.bounds;
+        node.visual.pivot = part.pivot;
+        node.visual.position = part.position;
+        node.local.position = part.position;
         node.visible = true;
         result.object.add_node(std::move(node));
+        result.parts.push_back(std::move(part));
     }
     if (!semantic.semantic.joints.empty()) result.diagnostics.push_back("semantic joints available for bone binding");
     result.object.update_world_transforms();
