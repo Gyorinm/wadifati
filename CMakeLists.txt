@@ -16,6 +16,7 @@ add_library(aethera
     src/object.cpp
     src/physics.cpp
     src/renderer.cpp
+    src/semantic.cpp
 )
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -33,6 +34,9 @@ target_link_libraries(aethera_demo PRIVATE aethera)
 
 add_executable(aethera_image_test tests/image_analyzer_test.cpp)
 target_link_libraries(aethera_image_test PRIVATE aethera)
+
+add_executable(aethera_semantic_test tests/semantic_test.cpp)
+target_link_libraries(aethera_semantic_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
