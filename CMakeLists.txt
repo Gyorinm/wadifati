@@ -1,50 +1,41 @@
 cmake_minimum_required(VERSION 3.20)
 project(AetheraEngine VERSION 0.3.0 LANGUAGES CXX)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image QUIET)
 find_path(ONNXRUNTIME_INCLUDE_DIR onnxruntime_cxx_api.h)
 find_library(ONNXRUNTIME_LIBRARY NAMES onnxruntime)
-
 add_library(aethera
     src/engine.cpp src/object.cpp src/physics.cpp src/renderer.cpp
     src/mesh.cpp src/mesh_renderer.cpp src/animated_image.cpp src/texture_loader.cpp
     src/image_loader.cpp src/adaptive_mesh.cpp src/shape_mesh.cpp src/skeleton_pose.cpp
     src/image_pipeline.cpp src/animation_controller.cpp src/image_actor_renderer.cpp
     src/scene_file.cpp src/vision_backend.cpp src/editor.cpp src/onnx_vision_backend.cpp)
-
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(aethera PUBLIC SDL2::SDL2)
 target_compile_features(aethera PUBLIC cxx_std_20)
-
 if (SDL2_image_FOUND)
     target_link_libraries(aethera PUBLIC SDL2_image::SDL2_image)
     target_compile_definitions(aethera PRIVATE AETHERA_HAS_SDL_IMAGE=1)
 endif()
-
 if (ONNXRUNTIME_INCLUDE_DIR AND ONNXRUNTIME_LIBRARY)
     target_include_directories(aethera PRIVATE ${ONNXRUNTIME_INCLUDE_DIR})
     target_link_libraries(aethera PRIVATE ${ONNXRUNTIME_LIBRARY})
     target_compile_definitions(aethera PRIVATE AETHERA_HAS_ONNX_RUNTIME=1)
 endif()
-
 if (MSVC)
     target_compile_options(aethera PRIVATE /W4 /permissive-)
 else()
     target_compile_options(aethera PRIVATE -Wall -Wextra -Wpedantic)
 endif()
-
 add_executable(aethera_demo examples/demo/main.cpp)
 target_link_libraries(aethera_demo PRIVATE aethera)
 add_executable(aethera_import tools/aethera_import.cpp)
 target_link_libraries(aethera_import PRIVATE aethera)
 add_executable(aethera_editor tools/aethera_editor.cpp)
 target_link_libraries(aethera_editor PRIVATE aethera)
-
 add_executable(aethera_mesh_test tests/mesh_renderer_test.cpp)
 target_link_libraries(aethera_mesh_test PRIVATE aethera)
 add_executable(aethera_adaptive_mesh_test tests/adaptive_mesh_test.cpp)
@@ -55,6 +46,7 @@ add_executable(aethera_image_actor_test tests/image_actor_test.cpp)
 target_link_libraries(aethera_image_actor_test PRIVATE aethera)
 add_executable(aethera_scene_roundtrip_test tests/scene_roundtrip_test.cpp)
 target_link_libraries(aethera_scene_roundtrip_test PRIVATE aethera)
-
+add_executable(aethera_editor_test tests/editor_test.cpp)
+target_link_libraries(aethera_editor_test PRIVATE aethera)
 install(TARGETS aethera aethera_demo aethera_import aethera_editor)
 install(DIRECTORY include/ DESTINATION include)
