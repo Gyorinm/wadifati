@@ -11,19 +11,10 @@ namespace {
 void make_demo(LivingObject& object, PhysicsWorld& physics) {
     const Vec2 origin{480.0f, 220.0f};
     const Vec2 local[] = {
-        {0.0f, 120.0f},   // pelvis
-        {0.0f, 40.0f},    // chest
-        {0.0f, -35.0f},   // head
-        {-55.0f, 55.0f},  // left elbow
-        {-90.0f, 90.0f},  // left hand
-        {55.0f, 55.0f},   // right elbow
-        {90.0f, 90.0f},   // right hand
-        {-35.0f, 190.0f}, // left knee
-        {-45.0f, 285.0f}, // left foot
-        {35.0f, 190.0f},  // right knee
-        {45.0f, 285.0f}   // right foot
+        {0.0f, 120.0f}, {-0.0f, 40.0f}, {0.0f, -35.0f}, {-55.0f, 55.0f}, {-90.0f, 90.0f},
+        {55.0f, 55.0f}, {90.0f, 90.0f}, {-35.0f, 190.0f}, {-45.0f, 285.0f},
+        {35.0f, 190.0f}, {45.0f, 285.0f}
     };
-
     const float masses[] = {0.0f, 1.0f, 1.0f, 1.0f, 0.7f, 1.0f, 0.7f, 1.0f, 0.7f, 1.0f, 0.7f};
 
     for (int i = 0; i < 11; ++i) {
@@ -40,17 +31,8 @@ void make_demo(LivingObject& object, PhysicsWorld& physics) {
         physics.add_constraint({a, b, rest, 0.95f});
         object.add_bone(a, b);
     };
-
-    bone(0, 1);
-    bone(1, 2);
-    bone(1, 3);
-    bone(3, 4);
-    bone(1, 5);
-    bone(5, 6);
-    bone(0, 7);
-    bone(7, 8);
-    bone(0, 9);
-    bone(9, 10);
+    bone(0, 1); bone(1, 2); bone(1, 3); bone(3, 4); bone(1, 5); bone(5, 6);
+    bone(0, 7); bone(7, 8); bone(0, 9); bone(9, 10);
 
     object.add_part({"pelvis", PartKind::Point, 0, 9.0f, 5.0f});
     object.add_part({"chest", PartKind::Point, 1, 11.0f, 6.0f});
@@ -73,11 +55,9 @@ void put_pixel(ImageRgba8& image, int x, int y, std::uint8_t r, std::uint8_t g,
 
 void fill_rect(ImageRgba8& image, int x, int y, int w, int h,
                std::uint8_t r, std::uint8_t g, std::uint8_t b) {
-    for (int yy = y; yy < y + h; ++yy) {
-        for (int xx = x; xx < x + w; ++xx) {
+    for (int yy = y; yy < y + h; ++yy)
+        for (int xx = x; xx < x + w; ++xx)
             put_pixel(image, xx, yy, r, g, b);
-        }
-    }
 }
 
 void fill_circle(ImageRgba8& image, int cx, int cy, int radius,
@@ -87,9 +67,7 @@ void fill_circle(ImageRgba8& image, int cx, int cy, int radius,
         for (int x = cx - radius; x <= cx + radius; ++x) {
             const int dx = x - cx;
             const int dy = y - cy;
-            if (dx * dx + dy * dy <= radius_sq) {
-                put_pixel(image, x, y, r, g, b);
-            }
+            if (dx * dx + dy * dy <= radius_sq) put_pixel(image, x, y, r, g, b);
         }
     }
 }
@@ -98,20 +76,16 @@ void make_demo_image(ImageRgba8& image) {
     image.width = 256;
     image.height = 128;
     image.pixels.assign(static_cast<std::size_t>(image.width * image.height * 4), 0);
-
-    // A tiny image atlas. Each region is an ordinary image part; Aethera does not
-    // require the visual to know anything about bones or physics.
-    fill_circle(image, 32, 32, 22, 235, 205, 170);     // head
-    fill_rect(image, 72, 12, 48, 80, 55, 110, 195);    // torso
-    fill_rect(image, 128, 20, 64, 18, 220, 90, 80);    // arm
-    fill_rect(image, 128, 50, 64, 18, 220, 90, 80);    // second arm
-    fill_rect(image, 200, 8, 24, 80, 80, 200, 120);   // leg
-    fill_rect(image, 228, 8, 24, 80, 80, 200, 120);   // second leg
+    fill_circle(image, 32, 32, 22, 235, 205, 170);
+    fill_rect(image, 72, 12, 48, 80, 55, 110, 195);
+    fill_rect(image, 128, 20, 64, 18, 220, 90, 80);
+    fill_rect(image, 128, 50, 64, 18, 220, 90, 80);
+    fill_rect(image, 200, 8, 24, 80, 80, 200, 120);
+    fill_rect(image, 228, 8, 24, 80, 80, 200, 120);
 }
 
 void make_image_object(ImageObject& object, const ImageRgba8& image) {
     object.set_image(&image);
-
     ImageNode root;
     root.name = "character_root";
     root.visual.name = "atlas_root";
@@ -121,87 +95,37 @@ void make_image_object(ImageObject& object, const ImageRgba8& image) {
     root.local.scale = {0.75f, 0.75f};
     const std::size_t root_id = object.add_node(root);
 
-    ImageNode head;
-    head.name = "head";
-    head.parent = root_id;
-    head.visual.name = "head";
-    head.visual.source = Rect{0.0f, 0.0f, 64.0f, 64.0f};
-    head.visual.pivot = {0.5f, 0.5f};
-    head.local.position = {-90.0f, -45.0f};
-    object.add_node(head);
+    auto add_part = [&](const char* name, Rect source, Vec2 pivot, Vec2 pos) {
+        ImageNode node;
+        node.name = name;
+        node.parent = root_id;
+        node.visual.name = name;
+        node.visual.source = source;
+        node.visual.pivot = pivot;
+        node.local.position = pos;
+        object.add_node(node);
+    };
 
-    ImageNode torso;
-    torso.name = "torso";
-    torso.parent = root_id;
-    torso.visual.name = "torso";
-    torso.visual.source = Rect{64.0f, 0.0f, 64.0f, 96.0f};
-    torso.visual.pivot = {0.5f, 0.5f};
-    torso.local.position = {-30.0f, 5.0f};
-    object.add_node(torso);
-
-    ImageNode arm_a;
-    arm_a.name = "arm_a";
-    arm_a.parent = root_id;
-    arm_a.visual.name = "arm_a";
-    arm_a.visual.source = Rect{128.0f, 16.0f, 64.0f, 24.0f};
-    arm_a.visual.pivot = {0.05f, 0.5f};
-    arm_a.local.position = {22.0f, -5.0f};
-    object.add_node(arm_a);
-
-    ImageNode arm_b;
-    arm_b.name = "arm_b";
-    arm_b.parent = root_id;
-    arm_b.visual.name = "arm_b";
-    arm_b.visual.source = Rect{128.0f, 48.0f, 64.0f, 24.0f};
-    arm_b.visual.pivot = {0.05f, 0.5f};
-    arm_b.local.position = {22.0f, 28.0f};
-    object.add_node(arm_b);
-
-    ImageNode leg_a;
-    leg_a.name = "leg_a";
-    leg_a.parent = root_id;
-    leg_a.visual.name = "leg_a";
-    leg_a.visual.source = Rect{192.0f, 0.0f, 32.0f, 96.0f};
-    leg_a.visual.pivot = {0.5f, 0.1f};
-    leg_a.local.position = {-18.0f, 52.0f};
-    object.add_node(leg_a);
-
-    ImageNode leg_b;
-    leg_b.name = "leg_b";
-    leg_b.parent = root_id;
-    leg_b.visual.name = "leg_b";
-    leg_b.visual.source = Rect{224.0f, 0.0f, 32.0f, 96.0f};
-    leg_b.visual.pivot = {0.5f, 0.1f};
-    leg_b.local.position = {10.0f, 52.0f};
-    object.add_node(leg_b);
-
+    add_part("head", Rect{0, 0, 64, 64}, {0.5f, 0.5f}, {-90, -45});
+    add_part("torso", Rect{64, 0, 64, 96}, {0.5f, 0.5f}, {-30, 5});
+    add_part("arm_a", Rect{128, 16, 64, 24}, {0.05f, 0.5f}, {22, -5});
+    add_part("arm_b", Rect{128, 48, 64, 24}, {0.05f, 0.5f}, {22, 28});
+    add_part("leg_a", Rect{192, 0, 32, 96}, {0.5f, 0.1f}, {-18, 52});
+    add_part("leg_b", Rect{224, 0, 32, 96}, {0.5f, 0.1f}, {10, 52});
     object.update_world_transforms();
 }
 
 } // namespace
 
 Engine::Engine(int width, int height, const char* title) {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
-        return;
-    }
-
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) return;
     window_ = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                width, height, SDL_WINDOW_SHOWN);
-    if (window_ == nullptr) {
-        SDL_Quit();
-        return;
-    }
-
+    if (window_ == nullptr) { SDL_Quit(); return; }
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (renderer_ == nullptr) {
-        SDL_DestroyWindow(window_);
-        window_ = nullptr;
-        SDL_Quit();
-        return;
-    }
-
+    if (renderer_ == nullptr) { SDL_DestroyWindow(window_); window_ = nullptr; SDL_Quit(); return; }
     image_renderer_ = std::make_unique<ImageRenderer>(renderer_);
-
+    animator_.set_state(MotionState::Walk);
     make_demo(object_, physics_);
     make_demo_image(demo_image_);
     make_image_object(image_object_, demo_image_);
@@ -209,41 +133,30 @@ Engine::Engine(int width, int height, const char* title) {
 
 Engine::~Engine() {
     image_renderer_.reset();
-
-    if (renderer_ != nullptr) {
-        SDL_DestroyRenderer(renderer_);
-    }
-    if (window_ != nullptr) {
-        SDL_DestroyWindow(window_);
-    }
+    if (renderer_ != nullptr) SDL_DestroyRenderer(renderer_);
+    if (window_ != nullptr) SDL_DestroyWindow(window_);
     SDL_Quit();
 }
 
 bool Engine::pump_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
-            return false;
-        }
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
-            return false;
-        }
+        if (event.type == SDL_QUIT) return false;
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) return false;
     }
     return true;
 }
 
 void Engine::update(float dt) {
     elapsed_ += dt;
+    animator_.update(dt);
 
-    // Physics demo remains independent from image animation.
     auto& root = physics_.points()[0];
-    const float base_y = 340.0f;
-    root.position.y = base_y + std::sin(elapsed_ * 2.2f) * 2.5f;
+    root.position.y = 340.0f + std::sin(elapsed_ * 2.2f) * 2.5f;
     root.previous_position = root.position;
     physics_.step(dt);
+    animator_.apply_walk_cycle(physics_, 8, 10);
 
-    // Procedural image motion: the image is split into parts and each part can
-    // move independently without changing the source pixels.
     if (image_object_.nodes().size() >= 7) {
         auto& root_node = image_object_.nodes()[0];
         auto& head = image_object_.nodes()[1];
@@ -259,7 +172,6 @@ void Engine::update(float dt) {
         arm_b.local.rotation = std::sin(elapsed_ * 3.5f + 1.57f) * 0.35f;
         leg_a.local.rotation = std::sin(elapsed_ * 2.5f) * 0.18f;
         leg_b.local.rotation = -std::sin(elapsed_ * 2.5f) * 0.18f;
-
         image_object_.update_world_transforms();
     }
 }
