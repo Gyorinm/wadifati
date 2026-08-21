@@ -8,6 +8,7 @@
 #include "aethera/image_renderer.hpp"
 #include "aethera/object.hpp"
 #include "aethera/physics.hpp"
+#include "aethera/procedural_animation.hpp"
 #include "aethera/renderer.hpp"
 
 namespace aethera {
@@ -36,6 +37,7 @@ private:
 
     PhysicsWorld physics_{};
     LivingObject object_{"demo"};
+    ProceduralAnimator animator_{};
 
     ImageRgba8 demo_image_{};
     ImageObject image_object_{"demo_image"};
