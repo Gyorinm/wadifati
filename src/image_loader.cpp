@@ -1,5 +1,6 @@
 #include "aethera/image_loader.hpp"
 #include <SDL.h>
+#include <cstring>
 #ifdef AETHERA_HAS_SDL_IMAGE
 #include <SDL_image.h>
 #endif
