@@ -12,11 +12,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install SDL2
-        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      - name: Install SDL2 and optional image codecs
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev libsdl2-image-dev
 
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build --parallel
+
+      - name: Run image format test
+        working-directory: build
+        run: ./aethera_image_formats_test
