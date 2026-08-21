@@ -17,6 +17,7 @@ add_library(aethera
     src/physics.cpp
     src/renderer.cpp
     src/semantic.cpp
+    src/skeleton_physics.cpp
 )
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
