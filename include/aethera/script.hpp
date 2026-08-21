@@ -23,6 +23,9 @@ enum class ScriptCommandKind {
     ApplyForce,
     SetVelocity,
     Damage,
+    RotatePart,
+    MovePart,
+    Reach,
     Call,
     Wait
 };
@@ -32,6 +35,7 @@ struct ScriptCommand {
     std::string argument;
     float value{0.0f};
     Vec2 vector{};
+    std::vector<float> args;
     ScriptValue script_value{false};
 };
 
