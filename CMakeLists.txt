@@ -1,36 +1,60 @@
 cmake_minimum_required(VERSION 3.20)
 project(AetheraEngine VERSION 0.1.0 LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image QUIET)
+
 add_library(aethera
-    src/engine.cpp src/object.cpp src/physics.cpp src/renderer.cpp src/mesh.cpp
-    src/mesh_renderer.cpp src/animated_image.cpp src/texture_loader.cpp src/image_loader.cpp
-    src/adaptive_mesh.cpp src/shape_mesh.cpp src/skeleton_pose.cpp src/image_pipeline.cpp
-    src/animation_controller.cpp)
+    src/engine.cpp
+    src/object.cpp
+    src/physics.cpp
+    src/renderer.cpp
+    src/mesh.cpp
+    src/mesh_renderer.cpp
+    src/animated_image.cpp
+    src/texture_loader.cpp
+    src/image_loader.cpp
+    src/adaptive_mesh.cpp
+    src/shape_mesh.cpp
+    src/skeleton_pose.cpp
+    src/image_pipeline.cpp
+    src/animation_controller.cpp
+    src/image_actor_renderer.cpp
+)
+
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(aethera PUBLIC SDL2::SDL2)
 target_compile_features(aethera PUBLIC cxx_std_20)
+
 if (SDL2_image_FOUND)
     target_link_libraries(aethera PUBLIC SDL2_image::SDL2_image)
     target_compile_definitions(aethera PRIVATE AETHERA_HAS_SDL_IMAGE=1)
 endif()
+
 if (MSVC)
     target_compile_options(aethera PRIVATE /W4 /permissive-)
 else()
     target_compile_options(aethera PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
 add_executable(aethera_demo examples/demo/main.cpp)
 target_link_libraries(aethera_demo PRIVATE aethera)
+
 add_executable(aethera_mesh_test tests/mesh_renderer_test.cpp)
 target_link_libraries(aethera_mesh_test PRIVATE aethera)
+
 add_executable(aethera_adaptive_mesh_test tests/adaptive_mesh_test.cpp)
 target_link_libraries(aethera_adaptive_mesh_test PRIVATE aethera)
+
 add_executable(aethera_pipeline_test tests/aethera_pipeline_test.cpp)
 target_link_libraries(aethera_pipeline_test PRIVATE aethera)
+
 add_executable(aethera_image_actor_test tests/image_actor_test.cpp)
 target_link_libraries(aethera_image_actor_test PRIVATE aethera)
+
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
