@@ -10,7 +10,7 @@ find_library(ONNXRUNTIME_LIBRARY NAMES onnxruntime)
 add_library(aethera
     src/animation_graph.cpp src/assets.cpp src/behavior.cpp src/engine.cpp src/image.cpp
     src/image_analyzer.cpp src/image_object.cpp src/image_reconstruction.cpp src/image_renderer.cpp
-    src/ik.cpp src/masked_image.cpp src/mesh.cpp src/mesh_generator.cpp src/mesh_renderer.cpp src/mesh_texture_renderer.cpp
+    src/ik.cpp src/bone_binding.cpp src/masked_image.cpp src/mesh.cpp src/mesh_generator.cpp src/mesh_renderer.cpp src/mesh_texture_renderer.cpp
     src/mesh_weights.cpp src/object.cpp src/onnx_vision.cpp src/physics.cpp src/procedural_animation.cpp src/renderer.cpp
     src/scene.cpp src/script.cpp src/script_expr.cpp src/script_runtime.cpp src/semantic.cpp
     src/skeleton_physics.cpp src/skinning.cpp src/script_scene.cpp src/vision.cpp src/vision_model.cpp)
@@ -77,5 +77,7 @@ add_executable(aethera_mesh_generator_test tests/mesh_generator_test.cpp)
 target_link_libraries(aethera_mesh_generator_test PRIVATE aethera)
 add_executable(aethera_mesh_weights_test tests/mesh_weights_test.cpp)
 target_link_libraries(aethera_mesh_weights_test PRIVATE aethera)
+add_executable(aethera_bone_binding_test tests/bone_binding_test.cpp)
+target_link_libraries(aethera_bone_binding_test PRIVATE aethera)
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
