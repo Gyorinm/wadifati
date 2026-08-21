@@ -8,6 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(SDL2 REQUIRED)
 
 add_library(aethera
+    src/animation_graph.cpp
+    src/behavior.cpp
     src/engine.cpp
     src/image.cpp
     src/image_analyzer.cpp
@@ -53,6 +55,12 @@ target_link_libraries(aethera_ik_test PRIVATE aethera)
 
 add_executable(aethera_animation_test tests/procedural_animation_test.cpp)
 target_link_libraries(aethera_animation_test PRIVATE aethera)
+
+add_executable(aethera_behavior_test tests/behavior_test.cpp)
+target_link_libraries(aethera_behavior_test PRIVATE aethera)
+
+add_executable(aethera_animation_graph_test tests/animation_graph_test.cpp)
+target_link_libraries(aethera_animation_graph_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
