@@ -1,8 +1,11 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <variant>
 #include <vector>
+
+#include "aethera/script_expr.hpp"
 
 namespace aethera {
 
@@ -12,6 +15,9 @@ enum class ScriptCommandKind {
     EmitEvent,
     SetFlag,
     ClearFlag,
+    SetVariable,
+    AddVariable,
+    Call,
     Wait
 };
 
@@ -19,11 +25,12 @@ struct ScriptCommand {
     ScriptCommandKind kind{ScriptCommandKind::Wait};
     std::string argument;
     float value{0.0f};
+    ScriptValue script_value{false};
 };
 
 struct ScriptRule {
     std::string trigger;
-    std::string condition;
+    ScriptExpression condition{};
     std::vector<ScriptCommand> commands;
 };
 
