@@ -11,6 +11,7 @@ add_library(aethera
     src/engine.cpp
     src/image.cpp
     src/image_object.cpp
+    src/image_renderer.cpp
     src/object.cpp
     src/physics.cpp
     src/renderer.cpp
