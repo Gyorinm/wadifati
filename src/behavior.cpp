@@ -1,5 +1,7 @@
 #include "aethera/behavior.hpp"
 
+#include <utility>
+
 namespace aethera {
 
 void BehaviorSystem::add_rule(BehaviorRule rule) {
@@ -10,9 +12,6 @@ void BehaviorSystem::emit(BehaviorEvent event, const BehaviorContext& context) {
     for (const auto& rule : rules_) {
         if (rule.event != event || !rule.action) continue;
 
-        // Conditions are intentionally simple at this layer. An empty condition
-        // always matches; the scripting layer will later compile richer expressions
-        // into the same event system.
         if (rule.condition.empty() || rule.condition == context.state ||
             rule.condition == context.target) {
             rule.action(context);
