@@ -137,11 +137,10 @@ Engine::Engine(int width, int height, const char* title) {
     animation_.add_transition({AnimationState::Fall, AnimationState::Land, "grounded", 0.06f});
     animation_.add_transition({AnimationState::Land, AnimationState::Idle, "recover", 0.10f});
 
-    behavior_.add_rule({BehaviorEvent::EnterState, "walk", [](const BehaviorContext&) {}});
-    behavior_.add_rule({BehaviorEvent::EnterState, "run", [](const BehaviorContext&) {}});
     behavior_.emit(BehaviorEvent::Spawn, {});
 
     animator_.set_state(MotionState::Walk);
+    animation_.set_state(AnimationState::Walk);
     make_demo(object_, physics_);
     make_demo_image(demo_image_);
     make_image_object(image_object_, demo_image_);
@@ -165,8 +164,15 @@ bool Engine::pump_events() {
 
 void Engine::update(float dt) {
     elapsed_ += dt;
+
+    const AnimationState before_state = animation_.state();
     animation_.update(dt);
-    behavior_.emit(BehaviorEvent::Update, {dt, animation_state_name(animation_.state()), {}, animation_.state_time()});
+    const AnimationState after_state = animation_.state();
+    if (before_state != after_state) {
+        behavior_.emit(BehaviorEvent::LeaveState, {dt, animation_state_name(before_state), {}, 0.0f});
+        behavior_.emit(BehaviorEvent::EnterState, {dt, animation_state_name(after_state), {}, 0.0f});
+    }
+    behavior_.emit(BehaviorEvent::Update, {dt, animation_state_name(after_state), {}, animation_.state_time()});
 
     auto& root = physics_.points()[0];
     root.position.y = 340.0f + std::sin(elapsed_ * 2.2f) * 2.5f;
@@ -183,7 +189,7 @@ void Engine::update(float dt) {
         auto& leg_a = image_object_.nodes()[5];
         auto& leg_b = image_object_.nodes()[6];
 
-        const float gait = animation_.state() == AnimationState::Run ? 2.0f : 1.0f;
+        const float gait = after_state == AnimationState::Run ? 2.0f : 1.0f;
         root_node.local.position.y = 300.0f + std::sin(elapsed_ * 2.0f * gait) * (6.0f * gait);
         root_node.local.rotation = std::sin(elapsed_ * 0.8f) * 0.025f;
         head.local.rotation = std::sin(elapsed_ * 2.0f * gait) * 0.05f;
