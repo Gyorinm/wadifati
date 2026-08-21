@@ -16,6 +16,7 @@ add_library(aethera
     src/image.cpp
     src/image_analyzer.cpp
     src/image_object.cpp
+    src/image_reconstruction.cpp
     src/image_renderer.cpp
     src/ik.cpp
     src/object.cpp
@@ -93,6 +94,8 @@ add_executable(aethera_onnx_vision_test tests/onnx_vision_test.cpp)
 target_link_libraries(aethera_onnx_vision_test PRIVATE aethera)
 add_executable(aethera_vision_model_test tests/vision_model_test.cpp)
 target_link_libraries(aethera_vision_model_test PRIVATE aethera)
+add_executable(aethera_image_reconstruction_test tests/image_reconstruction_test.cpp)
+target_link_libraries(aethera_image_reconstruction_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
