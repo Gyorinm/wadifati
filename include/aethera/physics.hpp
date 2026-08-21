@@ -10,6 +10,7 @@ namespace aethera {
 struct BodyPoint {
     Vec2 position{};
     Vec2 previous_position{};
+    Vec2 acceleration{};
     float inverse_mass{1.0f};
     bool pinned{false};
 };
@@ -30,6 +31,12 @@ public:
 
     void add_point(BodyPoint point);
     void add_constraint(DistanceConstraint constraint);
+    bool set_velocity(std::size_t index, Vec2 velocity);
+    bool add_velocity(std::size_t index, Vec2 delta);
+    bool apply_force(std::size_t index, Vec2 force);
+    bool move_point(std::size_t index, Vec2 delta);
+    bool set_point_position(std::size_t index, Vec2 position);
+    Vec2 velocity(std::size_t index) const;
     void step(float dt);
 
     std::vector<BodyPoint>& points() { return points_; }
