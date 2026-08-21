@@ -18,6 +18,7 @@ add_library(aethera
     src/renderer.cpp
     src/semantic.cpp
     src/skeleton_physics.cpp
+    src/skinning.cpp
 )
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -41,6 +42,9 @@ target_link_libraries(aethera_semantic_test PRIVATE aethera)
 
 add_executable(aethera_skeleton_physics_test tests/skeleton_physics_test.cpp)
 target_link_libraries(aethera_skeleton_physics_test PRIVATE aethera)
+
+add_executable(aethera_skinning_test tests/skinning_test.cpp)
+target_link_libraries(aethera_skinning_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
