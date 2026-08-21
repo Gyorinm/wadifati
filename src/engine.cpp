@@ -11,7 +11,7 @@ namespace {
 void make_demo(LivingObject& object, PhysicsWorld& physics) {
     const Vec2 origin{480.0f, 220.0f};
     const Vec2 local[] = {
-        {0.0f, 120.0f}, {-0.0f, 40.0f}, {0.0f, -35.0f}, {-55.0f, 55.0f}, {-90.0f, 90.0f},
+        {0.0f, 120.0f}, {0.0f, 40.0f}, {0.0f, -35.0f}, {-55.0f, 55.0f}, {-90.0f, 90.0f},
         {55.0f, 55.0f}, {90.0f, 90.0f}, {-35.0f, 190.0f}, {-45.0f, 285.0f},
         {35.0f, 190.0f}, {45.0f, 285.0f}
     };
@@ -125,6 +125,22 @@ Engine::Engine(int width, int height, const char* title) {
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer_ == nullptr) { SDL_DestroyWindow(window_); window_ = nullptr; SDL_Quit(); return; }
     image_renderer_ = std::make_unique<ImageRenderer>(renderer_);
+
+    animation_.add_transition({AnimationState::Idle, AnimationState::Walk, "move", 0.15f});
+    animation_.add_transition({AnimationState::Walk, AnimationState::Idle, "stop", 0.15f});
+    animation_.add_transition({AnimationState::Walk, AnimationState::Run, "sprint", 0.12f});
+    animation_.add_transition({AnimationState::Run, AnimationState::Walk, "slow", 0.12f});
+    animation_.add_transition({AnimationState::Idle, AnimationState::Jump, "jump", 0.08f});
+    animation_.add_transition({AnimationState::Walk, AnimationState::Jump, "jump", 0.08f});
+    animation_.add_transition({AnimationState::Run, AnimationState::Jump, "jump", 0.08f});
+    animation_.add_transition({AnimationState::Jump, AnimationState::Fall, "airborne", 0.06f});
+    animation_.add_transition({AnimationState::Fall, AnimationState::Land, "grounded", 0.06f});
+    animation_.add_transition({AnimationState::Land, AnimationState::Idle, "recover", 0.10f});
+
+    behavior_.add_rule({BehaviorEvent::EnterState, "walk", [](const BehaviorContext&) {}});
+    behavior_.add_rule({BehaviorEvent::EnterState, "run", [](const BehaviorContext&) {}});
+    behavior_.emit(BehaviorEvent::Spawn, {});
+
     animator_.set_state(MotionState::Walk);
     make_demo(object_, physics_);
     make_demo_image(demo_image_);
@@ -149,12 +165,14 @@ bool Engine::pump_events() {
 
 void Engine::update(float dt) {
     elapsed_ += dt;
-    animator_.update(dt);
+    animation_.update(dt);
+    behavior_.emit(BehaviorEvent::Update, {dt, animation_state_name(animation_.state()), {}, animation_.state_time()});
 
     auto& root = physics_.points()[0];
     root.position.y = 340.0f + std::sin(elapsed_ * 2.2f) * 2.5f;
     root.previous_position = root.position;
     physics_.step(dt);
+    animator_.update(dt);
     animator_.apply_walk_cycle(physics_, 8, 10);
 
     if (image_object_.nodes().size() >= 7) {
@@ -165,13 +183,14 @@ void Engine::update(float dt) {
         auto& leg_a = image_object_.nodes()[5];
         auto& leg_b = image_object_.nodes()[6];
 
-        root_node.local.position.y = 300.0f + std::sin(elapsed_ * 2.0f) * 6.0f;
+        const float gait = animation_.state() == AnimationState::Run ? 2.0f : 1.0f;
+        root_node.local.position.y = 300.0f + std::sin(elapsed_ * 2.0f * gait) * (6.0f * gait);
         root_node.local.rotation = std::sin(elapsed_ * 0.8f) * 0.025f;
-        head.local.rotation = std::sin(elapsed_ * 2.0f) * 0.05f;
-        arm_a.local.rotation = std::sin(elapsed_ * 3.5f) * 0.35f;
-        arm_b.local.rotation = std::sin(elapsed_ * 3.5f + 1.57f) * 0.35f;
-        leg_a.local.rotation = std::sin(elapsed_ * 2.5f) * 0.18f;
-        leg_b.local.rotation = -std::sin(elapsed_ * 2.5f) * 0.18f;
+        head.local.rotation = std::sin(elapsed_ * 2.0f * gait) * 0.05f;
+        arm_a.local.rotation = std::sin(elapsed_ * 3.5f * gait) * 0.35f;
+        arm_b.local.rotation = std::sin(elapsed_ * 3.5f * gait + 1.57f) * 0.35f;
+        leg_a.local.rotation = std::sin(elapsed_ * 2.5f * gait) * 0.18f;
+        leg_b.local.rotation = -std::sin(elapsed_ * 2.5f * gait) * 0.18f;
         image_object_.update_world_transforms();
     }
 }
