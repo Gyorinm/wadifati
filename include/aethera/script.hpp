@@ -17,6 +17,11 @@ enum class ScriptCommandKind {
     ClearFlag,
     SetVariable,
     AddVariable,
+    Move,
+    Rotate,
+    ApplyForce,
+    SetVelocity,
+    Damage,
     Call,
     Wait
 };
