@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image QUIET)
+find_path(ONNXRUNTIME_INCLUDE_DIR onnxruntime_cxx_api.h)
+find_library(ONNXRUNTIME_LIBRARY NAMES onnxruntime)
 
 add_library(aethera
     src/animation_graph.cpp
@@ -17,6 +19,7 @@ add_library(aethera
     src/image_renderer.cpp
     src/ik.cpp
     src/object.cpp
+    src/onnx_vision.cpp
     src/physics.cpp
     src/procedural_animation.cpp
     src/renderer.cpp
@@ -38,6 +41,12 @@ target_compile_features(aethera PUBLIC cxx_std_20)
 if (SDL2_image_FOUND)
     target_link_libraries(aethera PUBLIC SDL2_image::SDL2_image)
     target_compile_definitions(aethera PRIVATE AETHERA_HAS_SDL_IMAGE=1)
+endif()
+
+if (ONNXRUNTIME_INCLUDE_DIR AND ONNXRUNTIME_LIBRARY)
+    target_include_directories(aethera PRIVATE ${ONNXRUNTIME_INCLUDE_DIR})
+    target_link_libraries(aethera PRIVATE ${ONNXRUNTIME_LIBRARY})
+    target_compile_definitions(aethera PRIVATE AETHERA_HAS_ONNX_RUNTIME=1)
 endif()
 
 if (MSVC)
@@ -79,6 +88,8 @@ add_executable(aethera_scene_test tests/scene_test.cpp)
 target_link_libraries(aethera_scene_test PRIVATE aethera)
 add_executable(aethera_vision_test tests/vision_test.cpp)
 target_link_libraries(aethera_vision_test PRIVATE aethera)
+add_executable(aethera_onnx_vision_test tests/onnx_vision_test.cpp)
+target_link_libraries(aethera_onnx_vision_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
