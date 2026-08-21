@@ -25,7 +25,7 @@ bool ScriptParser::parse(const std::string& source, ScriptProgram& program,std::
         else if(starts_with(s,"emit ")){c.kind=ScriptCommandKind::EmitEvent;rest=trim(s.substr(5));}
         else if(starts_with(s,"set_flag ")){c.kind=ScriptCommandKind::SetFlag;rest=trim(s.substr(9));}
         else if(starts_with(s,"clear_flag ")){c.kind=ScriptCommandKind::ClearFlag;rest=trim(s.substr(11));}
-        else if(starts_with(s,"set ")){c.kind=ScriptCommandKind::SetVariable;std::istringstream ss(s.substr(4));ss>>c.argument;std::string rawv;std::getline(ss,rawv);rawv=trim(rawv);if(c.argument.empty()||rawv.empty()){err(errors,line,"set expects a variable and value");continue;}if(!parse_value(rawv,c.script_value)){err(errors,line,"invalid value");continue;}}
+        else if(starts_with(s,"set ")){c.kind=ScriptCommandKind::SetVariable;std::istringstream ss(s.substr(4));ss>>c.argument;std::string rawv;std::getline(ss,rawv);rawv=trim(rawv);if(c.argument.empty()||rawv.empty()){err(errors,line,"set expects a variable and value");continue;}if(!parse_script_value(rawv,c.script_value)){err(errors,line,"invalid value");continue;}}
         else if(starts_with(s,"add ")){c.kind=ScriptCommandKind::AddVariable;std::istringstream ss(s.substr(4));ss>>c.argument>>c.value;if(c.argument.empty()||ss.fail()){err(errors,line,"add expects variable and numeric value");continue;}}
         else if(starts_with(s,"call ")){c.kind=ScriptCommandKind::Call;rest=trim(s.substr(5));}
         else if(starts_with(s,"wait ")){c.kind=ScriptCommandKind::Wait;try{c.value=std::stof(trim(s.substr(5)));}catch(...){err(errors,line,"wait expects a numeric duration");continue;}if(c.value<0){err(errors,line,"wait duration cannot be negative");continue;}}
