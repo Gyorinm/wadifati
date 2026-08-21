@@ -3,6 +3,8 @@
 #include <SDL.h>
 #include <memory>
 
+#include "aethera/animation_graph.hpp"
+#include "aethera/behavior.hpp"
 #include "aethera/image.hpp"
 #include "aethera/image_object.hpp"
 #include "aethera/image_renderer.hpp"
@@ -29,6 +31,8 @@ public:
     PhysicsWorld& physics() { return physics_; }
     LivingObject& world_object() { return object_; }
     ImageObject& image_object() { return image_object_; }
+    AnimationGraph& animation() { return animation_; }
+    BehaviorSystem& behavior() { return behavior_; }
 
 private:
     SDL_Window* window_{};
@@ -38,6 +42,8 @@ private:
     PhysicsWorld physics_{};
     LivingObject object_{"demo"};
     ProceduralAnimator animator_{};
+    AnimationGraph animation_{};
+    BehaviorSystem behavior_{};
 
     ImageRgba8 demo_image_{};
     ImageObject image_object_{"demo_image"};
