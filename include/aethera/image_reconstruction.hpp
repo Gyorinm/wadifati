@@ -19,6 +19,7 @@ struct ReconstructedPart {
     Vec2 pivot{0.5f, 0.5f};
     Vec2 position{};
     float confidence{0.0f};
+    ImageRgba8 layer;
     std::vector<MeshVertex> mesh_vertices;
     std::vector<std::uint32_t> mesh_indices;
     std::vector<MeshBone> bones;
