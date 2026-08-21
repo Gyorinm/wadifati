@@ -13,7 +13,7 @@ class MeshTextureRenderer {
 public:
     explicit MeshTextureRenderer(SDL_Renderer* renderer) : renderer_(renderer) {}
 
-    bool draw(const ImageRgba8& image, const MeshDrawData& mesh);
+    bool draw(const ImageRgba8& image, const MeshDrawData& mesh, Vec2 offset = {});
 
 private:
     SDL_Renderer* renderer_{};
