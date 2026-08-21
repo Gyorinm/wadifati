@@ -20,6 +20,17 @@ struct Vec2 {
     Vec2& operator-=(Vec2 rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 };
 
+struct Rect {
+    float x{0.0f};
+    float y{0.0f};
+    float width{0.0f};
+    float height{0.0f};
+
+    constexpr Rect() = default;
+    constexpr Rect(float x_, float y_, float w_, float h_)
+        : x(x_), y(y_), width(w_), height(h_) {}
+};
+
 inline float dot(Vec2 a, Vec2 b) { return a.x * b.x + a.y * b.y; }
 inline float length_squared(Vec2 v) { return dot(v, v); }
 inline float length(Vec2 v) { return std::sqrt(length_squared(v)); }
