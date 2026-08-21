@@ -18,6 +18,7 @@ add_library(aethera
     src/procedural_animation.cpp
     src/renderer.cpp
     src/script.cpp
+    src/script_expr.cpp
     src/script_runtime.cpp
     src/semantic.cpp
     src/skeleton_physics.cpp
@@ -51,5 +52,7 @@ add_executable(aethera_animation_graph_test tests/animation_graph_test.cpp)
 target_link_libraries(aethera_animation_graph_test PRIVATE aethera)
 add_executable(aethera_script_test tests/script_test.cpp)
 target_link_libraries(aethera_script_test PRIVATE aethera)
+add_executable(aethera_script_expr_test tests/script_expr_test.cpp)
+target_link_libraries(aethera_script_expr_test PRIVATE aethera)
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
