@@ -4,8 +4,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(SDL2 REQUIRED)
+find_package(SDL2_image QUIET)
+
 add_library(aethera
     src/animation_graph.cpp
+    src/assets.cpp
     src/behavior.cpp
     src/engine.cpp
     src/image.cpp
@@ -26,18 +29,31 @@ add_library(aethera
     src/skinning.cpp
     src/script_scene.cpp
 )
+
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(aethera PUBLIC SDL2::SDL2)
 target_compile_features(aethera PUBLIC cxx_std_20)
+
+if (SDL2_image_FOUND)
+    target_link_libraries(aethera PUBLIC SDL2_image::SDL2_image)
+    target_compile_definitions(aethera PRIVATE AETHERA_HAS_SDL_IMAGE=1)
+endif()
+
 if (MSVC)
     target_compile_options(aethera PRIVATE /W4 /permissive-)
 else()
     target_compile_options(aethera PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
 add_executable(aethera_demo examples/demo/main.cpp)
 target_link_libraries(aethera_demo PRIVATE aethera)
+
 add_executable(aethera_image_test tests/image_analyzer_test.cpp)
 target_link_libraries(aethera_image_test PRIVATE aethera)
+
+add_executable(aethera_image_formats_test tests/image_formats_test.cpp)
+target_link_libraries(aethera_image_formats_test PRIVATE aethera)
+
 add_executable(aethera_semantic_test tests/semantic_test.cpp)
 target_link_libraries(aethera_semantic_test PRIVATE aethera)
 add_executable(aethera_skeleton_physics_test tests/skeleton_physics_test.cpp)
@@ -62,5 +78,6 @@ add_executable(aethera_script_image_test tests/script_image_test.cpp)
 target_link_libraries(aethera_script_image_test PRIVATE aethera)
 add_executable(aethera_scene_test tests/scene_test.cpp)
 target_link_libraries(aethera_scene_test PRIVATE aethera)
+
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
