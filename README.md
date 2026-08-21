@@ -1,54 +1,59 @@
 # Aethera Engine
 
-Aethera is a lightweight, image-first 2D simulation and game engine.
+Aethera is a lightweight C++20 image-first 2D runtime. The core idea is to use an ordinary image as the starting material and progressively turn it into a programmable, deformable actor without requiring a heavyweight general-purpose game engine.
 
-The core idea is simple: an image is the starting material. Aethera progressively turns visual content into structured objects with parts, motion, physics, and behavior without requiring a heavyweight general-purpose game engine.
-
-## Current pipeline
+## MVP pipeline
 
 ```text
-Image / Asset
-      |
-      v
-Image Analysis
-      |
-      +---- background estimation
-      +---- connected foreground regions
-      +---- noise filtering
-      +---- isolated transparent layers
-      |
-      v
-Image Object
-      |
-      +---- Parts / Nodes
-      +---- Parent / Child transforms
-      +---- Appearance
-      +---- Motion
-      +---- Physics
-      +---- Behavior
-      |
-      v
-Renderer
+Image file
+   ↓
+RGBA pixels
+   ↓
+Shape mesh
+   ↓
+Hierarchical skeleton
+   ↓
+Automatic bone weights
+   ↓
+Weighted skinning
+   ↓
+Procedural animation
+   ↓
+SDL geometry renderer
 ```
 
-The current image analyzer is deliberately dependency-light. It handles images with transparency and can also estimate a flat background from the four corners of an opaque image. It is a geometric/color segmentation layer, not a semantic vision model: it does not yet know that a region is a human arm, a fish fin, a window, or a tree branch.
+The main runtime pieces are:
 
-Detected regions are converted to independent RGBA layers with transparent pixels outside the detected component. This means moving a detected region does not drag its original rectangular background with it.
-
-Automatic semantic recognition, skeletal inference, IK, procedural animation, richer physics, and the Aethera scripting language are later layers in the roadmap.
+- `ImageLoader`: decodes an image into compact `ImageRgba8` pixels.
+- `ShapeMeshGenerator`: creates a mesh using the image alpha as visibility information.
+- `SkeletonPose`: maintains parent/child joint transforms.
+- `ImagePipeline`: builds an `ImageActor` from an RGBA image.
+- `MeshDeformer`: performs weighted bone deformation.
+- `AnimationController`: provides simple procedural poses.
+- `ImageActorRenderer`: uploads the RGBA image and renders the deformed mesh through SDL geometry.
 
 ## Build
 
-Aethera uses C++20 and SDL2 for the platform window, input, and low-level 2D presentation. SDL2 is deliberately used as a thin dependency rather than as a game engine.
+Requirements:
+
+- CMake 3.20+
+- C++20 compiler
+- SDL2 development package
+- SDL2_image is optional. When available, `ImageLoader` can use formats supported by SDL_image. Without it, BMP remains available through SDL2.
 
 ```bash
 cmake -S . -B build
 cmake --build build
 ```
 
-The repository also contains a small analyzer test target:
+## Run the MVP
 
 ```bash
-cmake --build build --target aethera_image_test
-./build/aethera_image_test
+./build/aethera_demo path/to/image.png
 ```
+
+The demo loads the supplied image, constructs an `ImageActor`, applies the idle procedural pose each frame, and renders the resulting skinned mesh.
+
+## Project status
+
+The lightweight runtime/MVP is implemented. Production-quality automatic computer vision is a separate layer: high-quality semantic segmentation, human/animal-specific skeleton models, a full visual editor, export tooling, and production-grade rigs still require additional implementation and training assets. These are not represented as completed features in this MVP.
