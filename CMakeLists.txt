@@ -9,6 +9,10 @@ find_package(SDL2 REQUIRED)
 
 add_library(aethera
     src/engine.cpp
+    src/image.cpp
+    src/image_analyzer.cpp
+    src/image_object.cpp
+    src/image_renderer.cpp
     src/object.cpp
     src/physics.cpp
     src/renderer.cpp
@@ -16,7 +20,6 @@ add_library(aethera
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(aethera PUBLIC SDL2::SDL2)
-
 target_compile_features(aethera PUBLIC cxx_std_20)
 
 if (MSVC)
@@ -27,6 +30,9 @@ endif()
 
 add_executable(aethera_demo examples/demo/main.cpp)
 target_link_libraries(aethera_demo PRIVATE aethera)
+
+add_executable(aethera_image_test tests/image_analyzer_test.cpp)
+target_link_libraries(aethera_image_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)

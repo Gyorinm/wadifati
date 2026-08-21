@@ -1,7 +1,11 @@
 #pragma once
 
 #include <SDL.h>
+#include <memory>
 
+#include "aethera/image.hpp"
+#include "aethera/image_object.hpp"
+#include "aethera/image_renderer.hpp"
 #include "aethera/object.hpp"
 #include "aethera/physics.hpp"
 #include "aethera/renderer.hpp"
@@ -23,12 +27,19 @@ public:
 
     PhysicsWorld& physics() { return physics_; }
     LivingObject& world_object() { return object_; }
+    ImageObject& image_object() { return image_object_; }
 
 private:
     SDL_Window* window_{};
     SDL_Renderer* renderer_{};
+    std::unique_ptr<ImageRenderer> image_renderer_;
+
     PhysicsWorld physics_{};
     LivingObject object_{"demo"};
+
+    ImageRgba8 demo_image_{};
+    ImageObject image_object_{"demo_image"};
+
     float elapsed_{0.0f};
 };
 
