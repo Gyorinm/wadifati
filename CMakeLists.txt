@@ -12,6 +12,7 @@ add_library(aethera
     src/object.cpp
     src/physics.cpp
     src/renderer.cpp
+    src/image.cpp
 )
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
