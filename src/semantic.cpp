@@ -1,9 +1,9 @@
 #include "aethera/semantic.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <string>
+#include <vector>
 
 namespace aethera {
 
@@ -17,36 +17,37 @@ float aspect(const ImageRegion& r) {
 
 float area_ratio(const ImageRegion& r, const ImageAnalysisResult& a) {
     if (a.labels.empty()) return 0.0f;
-    const float total = static_cast<float>(a.labels.size());
-    return static_cast<float>(r.pixel_count) / total;
+    return static_cast<float>(r.pixel_count) / static_cast<float>(a.labels.size());
 }
 
 std::size_t largest_region(const ImageAnalysisResult& a) {
     std::size_t best = none;
-    std::size_t best_count = 0;
+    std::size_t count = 0;
     for (std::size_t i = 0; i < a.regions.size(); ++i) {
-        if (a.regions[i].pixel_count > best_count) {
-            best_count = a.regions[i].pixel_count;
+        if (a.regions[i].pixel_count > count) {
+            count = a.regions[i].pixel_count;
             best = i;
         }
     }
     return best;
 }
 
-void link_nearest(SemanticObject& object, std::size_t anchor, const std::vector<std::size_t>& candidates) {
-    if (anchor >= object.joints.size()) return;
-    float best_distance = std::numeric_limits<float>::max();
-    std::size_t best = none;
-    for (const auto i : candidates) {
-        if (i >= object.joints.size() || i == anchor) continue;
-        const float d2 = length_squared(object.joints[i].position - object.joints[anchor].position);
-        if (d2 < best_distance) {
-            best_distance = d2;
-            best = i;
+void add_nearest_links(SemanticObject& object) {
+    if (object.joints.size() < 2) return;
+
+    // Connect every joint to its nearest earlier joint. This gives a deterministic
+    // tree without requiring a heavyweight graph library.
+    for (std::size_t i = 1; i < object.joints.size(); ++i) {
+        float best_d2 = std::numeric_limits<float>::max();
+        std::size_t best = 0;
+        for (std::size_t j = 0; j < i; ++j) {
+            const float d2 = length_squared(object.joints[i].position - object.joints[j].position);
+            if (d2 < best_d2) {
+                best_d2 = d2;
+                best = j;
+            }
         }
-    }
-    if (best != none) {
-        object.links.push_back({anchor, best, std::sqrt(best_distance)});
+        object.links.push_back({best, i, std::sqrt(best_d2)});
     }
 }
 
@@ -70,108 +71,88 @@ const char* semantic_kind_name(SemanticKind kind) {
 }
 
 SemanticObject SemanticAnalyzer::classify(const ImageAnalysisResult& analysis) const {
-    SemanticObject object;
-    if (analysis.regions.empty()) return object;
+    SemanticObject result;
+    if (analysis.regions.empty()) return result;
 
-    object.regions.resize(analysis.regions.size());
-    for (std::size_t i = 0; i < analysis.regions.size(); ++i) object.regions[i] = i;
+    const std::size_t largest = largest_region(analysis);
+    if (largest == none) return result;
 
-    const auto largest = largest_region(analysis);
-    if (largest == none) return object;
+    result.regions.resize(analysis.regions.size());
+    for (std::size_t i = 0; i < result.regions.size(); ++i) result.regions[i] = i;
 
-    const auto& main = analysis.regions[largest];
+    const ImageRegion& main = analysis.regions[largest];
     const float ar = aspect(main);
     const float ratio = area_ratio(main, analysis);
     const float count = static_cast<float>(analysis.regions.size());
 
-    // These are intentionally conservative priors. They classify gross visual structure;
-    // they do not claim to recognize arbitrary photographs semantically.
     if (count >= 6.0f && ar > 0.35f && ar < 1.8f) {
-        object.kind = SemanticKind::Human;
-        object.confidence = 0.35f;
+        result.kind = SemanticKind::Human;
+        result.confidence = 0.35f;
     } else if (count >= 5.0f && ar > 1.7f && ratio < 0.45f) {
-        object.kind = SemanticKind::Fish;
-        object.confidence = 0.30f;
+        result.kind = SemanticKind::Fish;
+        result.confidence = 0.30f;
     } else if (count >= 7.0f && ar < 1.2f && ratio < 0.25f) {
-        object.kind = SemanticKind::Insect;
-        object.confidence = 0.25f;
+        result.kind = SemanticKind::Insect;
+        result.confidence = 0.25f;
     } else if (ar > 2.2f && ratio > 0.25f) {
-        object.kind = SemanticKind::Landscape;
-        object.confidence = 0.30f;
+        result.kind = SemanticKind::Landscape;
+        result.confidence = 0.30f;
     } else if (ar > 1.4f && ratio > 0.18f) {
-        object.kind = SemanticKind::Building;
-        object.confidence = 0.25f;
-    } else {
-        object.kind = SemanticKind::Unknown;
-        object.confidence = 0.10f;
+        result.kind = SemanticKind::Building;
+        result.confidence = 0.25f;
     }
 
-    return object;
+    return result;
 }
 
-void SemanticAnalyzer::infer_skeleton(SemanticObject& object) const {
+void SemanticAnalyzer::infer_skeleton(const ImageAnalysisResult& analysis,
+                                      SemanticObject& object) const {
     object.joints.clear();
     object.links.clear();
     if (object.regions.empty()) return;
 
-    // The current skeleton stage operates on region centroids. A later AI segmenter can
-    // supply richer landmarks without changing this representation.
-    if (object.kind == SemanticKind::Human) {
-        const std::size_t n = object.regions.size();
-        const std::size_t anchor = 0;
-        object.joints.push_back({"root", {}, object.regions[anchor]});
-
-        std::vector<std::size_t> candidates;
-        for (std::size_t i = 1; i < n; ++i) {
-            candidates.push_back(i);
-            object.joints.push_back({"part_" + std::to_string(i), {}, object.regions[i]});
-        }
-        link_nearest(object, 0, candidates);
-        return;
+    // Region centroids are the first landmark source. A future AI landmark provider
+    // can populate the same representation with anatomically meaningful points.
+    for (std::size_t i = 0; i < object.regions.size(); ++i) {
+        const std::size_t region_index = object.regions[i];
+        if (region_index >= analysis.regions.size()) continue;
+        const Vec2 center = analysis.regions[region_index].centroid;
+        std::string name = "part_" + std::to_string(i);
+        if (i == 0) name = "root";
+        object.joints.push_back({std::move(name), center, region_index});
     }
 
-    // Generic fallback: connect regions as a minimum-style radial tree around the
-    // largest component. This gives physics/animation a graph even for unknown objects.
-    const std::size_t root_region = object.regions.front();
-    object.joints.push_back({"root", {}, root_region});
-    for (std::size_t i = 1; i < object.regions.size(); ++i) {
-        object.joints.push_back({"part_" + std::to_string(i), {}, object.regions[i]});
-    }
-    std::vector<std::size_t> candidates;
-    for (std::size_t i = 1; i < object.joints.size(); ++i) candidates.push_back(i);
-    link_nearest(object, 0, candidates);
+    add_nearest_links(object);
 }
 
 ImageObject SemanticAnalyzer::build_image_object(const ImageRgba8& image,
-                                                  const ImageAnalysisResult& analysis,
-                                                  const SemanticObject& semantic) const {
+                                                 const ImageAnalysisResult& analysis,
+                                                 const SemanticObject& semantic) const {
     ImageObject object("semantic_object");
     object.set_image(&image);
 
-    for (std::size_t i = 0; i < semantic.regions.size(); ++i) {
-        const std::size_t region_index = semantic.regions[i];
-        if (region_index >= analysis.regions.size()) continue;
+    for (std::size_t i = 0; i < semantic.joints.size(); ++i) {
+        const auto& joint = semantic.joints[i];
+        if (joint.source_region >= analysis.regions.size()) continue;
 
-        const auto& region = analysis.regions[region_index];
+        const auto& region = analysis.regions[joint.source_region];
         ImageNode node;
-        node.name = "part_" + std::to_string(i);
-        node.visual.name = node.name;
+        node.name = joint.name;
+        node.visual.name = joint.name;
         node.visual.source = region.bounds;
         node.visual.pivot = {
             region.centroid.x / static_cast<float>(image.width),
             region.centroid.y / static_cast<float>(image.height)
         };
-        node.local.position = region.centroid;
+        node.local.position = joint.position;
         object.add_node(std::move(node));
     }
 
     for (const auto& link : semantic.links) {
-        if (link.a < object.nodes().size() && link.b < object.nodes().size()) {
-            object.nodes()[link.b].parent = link.a;
-            object.nodes()[link.b].local.position =
-                analysis.regions[semantic.regions[link.b]].centroid -
-                analysis.regions[semantic.regions[link.a]].centroid;
-        }
+        if (link.a >= object.nodes().size() || link.b >= object.nodes().size()) continue;
+        object.nodes()[link.b].parent = link.a;
+        object.nodes()[link.b].local.position =
+            semantic.joints[link.b].position - semantic.joints[link.a].position;
     }
 
     object.update_world_transforms();
