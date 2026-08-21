@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include <memory>
 
 #include "aethera/math.hpp"
 #include "aethera/object.hpp"
@@ -24,7 +25,7 @@ public:
 
 private:
     SDL_Renderer* renderer_{};
-    MeshTextureRenderer* mesh_renderer_{};
+    std::unique_ptr<MeshTextureRenderer> mesh_renderer_;
 };
 
 } // namespace aethera
