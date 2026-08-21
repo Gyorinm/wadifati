@@ -1,6 +1,7 @@
 #include "aethera/animation_graph.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace aethera {
 
