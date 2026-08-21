@@ -2,9 +2,9 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdio>
 #include <fstream>
 #include <string>
-#include <vector>
 
 namespace {
 
@@ -24,7 +24,6 @@ void write_test_bmp(const std::string& path) {
     std::ofstream out(path, std::ios::binary);
     assert(out);
 
-    // 2x1, 24-bit BGR, one padded row.
     const std::uint32_t file_size = 14 + 40 + 8;
     out.put('B'); out.put('M');
     write_u32(out, file_size);
@@ -33,7 +32,6 @@ void write_test_bmp(const std::string& path) {
     write_u16(out, 1); write_u16(out, 24); write_u32(out, 0);
     write_u32(out, 8); write_u32(out, 0); write_u32(out, 0); write_u32(out, 0); write_u32(out, 0);
 
-    // Pixel 0 = red, pixel 1 = green, then 2 bytes of row padding.
     const unsigned char row[8] = {0, 0, 255, 0, 255, 0, 0, 0};
     out.write(reinterpret_cast<const char*>(row), sizeof(row));
 }
