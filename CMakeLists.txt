@@ -13,8 +13,10 @@ add_library(aethera
     src/image_analyzer.cpp
     src/image_object.cpp
     src/image_renderer.cpp
+    src/ik.cpp
     src/object.cpp
     src/physics.cpp
+    src/procedural_animation.cpp
     src/renderer.cpp
     src/semantic.cpp
     src/skeleton_physics.cpp
@@ -45,6 +47,12 @@ target_link_libraries(aethera_skeleton_physics_test PRIVATE aethera)
 
 add_executable(aethera_skinning_test tests/skinning_test.cpp)
 target_link_libraries(aethera_skinning_test PRIVATE aethera)
+
+add_executable(aethera_ik_test tests/ik_test.cpp)
+target_link_libraries(aethera_ik_test PRIVATE aethera)
+
+add_executable(aethera_animation_test tests/procedural_animation_test.cpp)
+target_link_libraries(aethera_animation_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
