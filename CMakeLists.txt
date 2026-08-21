@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(AetheraEngine VERSION 0.1.0 LANGUAGES CXX)
+project(AetheraEngine VERSION 0.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,6 +24,8 @@ add_library(aethera
     src/image_pipeline.cpp
     src/animation_controller.cpp
     src/image_actor_renderer.cpp
+    src/scene_file.cpp
+    src/vision_backend.cpp
 )
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -44,6 +46,9 @@ endif()
 add_executable(aethera_demo examples/demo/main.cpp)
 target_link_libraries(aethera_demo PRIVATE aethera)
 
+add_executable(aethera_import tools/aethera_import.cpp)
+target_link_libraries(aethera_import PRIVATE aethera)
+
 add_executable(aethera_mesh_test tests/mesh_renderer_test.cpp)
 target_link_libraries(aethera_mesh_test PRIVATE aethera)
 
@@ -56,5 +61,5 @@ target_link_libraries(aethera_pipeline_test PRIVATE aethera)
 add_executable(aethera_image_actor_test tests/image_actor_test.cpp)
 target_link_libraries(aethera_image_actor_test PRIVATE aethera)
 
-install(TARGETS aethera aethera_demo)
+install(TARGETS aethera aethera_demo aethera_import)
 install(DIRECTORY include/ DESTINATION include)
