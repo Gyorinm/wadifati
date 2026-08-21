@@ -5,6 +5,7 @@
 #include <variant>
 #include <vector>
 
+#include "aethera/math.hpp"
 #include "aethera/script_expr.hpp"
 
 namespace aethera {
@@ -30,6 +31,7 @@ struct ScriptCommand {
     ScriptCommandKind kind{ScriptCommandKind::Wait};
     std::string argument;
     float value{0.0f};
+    Vec2 vector{};
     ScriptValue script_value{false};
 };
 
