@@ -4,7 +4,7 @@
 
 namespace aethera {
 
-bool MeshTextureRenderer::draw(const ImageRgba8& image, const MeshDrawData& mesh) {
+bool MeshTextureRenderer::draw(const ImageRgba8& image, const MeshDrawData& mesh, Vec2 offset) {
     if (renderer_ == nullptr || !image.valid() || mesh.vertices.empty() || mesh.indices.empty()) return false;
     SDL_Texture* texture = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA32,
                                              SDL_TEXTUREACCESS_STATIC, image.width, image.height);
@@ -19,7 +19,7 @@ bool MeshTextureRenderer::draw(const ImageRgba8& image, const MeshDrawData& mesh
     vertices.reserve(mesh.vertices.size());
     for (const MeshDrawVertex& v : mesh.vertices) {
         SDL_Vertex out{};
-        out.position = {v.x, v.y};
+        out.position = {v.x + offset.x, v.y + offset.y};
         out.color = {255, 255, 255, 255};
         out.tex_coord = {v.u, v.v};
         vertices.push_back(out);
@@ -29,8 +29,7 @@ bool MeshTextureRenderer::draw(const ImageRgba8& image, const MeshDrawData& mesh
     std::vector<int> indices;
     indices.reserve(mesh.indices.size());
     for (std::uint32_t index : mesh.indices) {
-        if (index >= static_cast<std::uint32_t>(vertex_count)) continue;
-        indices.push_back(static_cast<int>(index));
+        if (index < static_cast<std::uint32_t>(vertex_count)) indices.push_back(static_cast<int>(index));
     }
     const bool ok = !indices.empty() &&
         SDL_RenderGeometry(renderer_, texture, vertices.data(), vertex_count,
