@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL.h>
-
 #include "aethera/object.hpp"
 #include "aethera/physics.hpp"
 #include "aethera/renderer.hpp"
@@ -12,18 +11,15 @@ class Engine {
 public:
     Engine(int width, int height, const char* title);
     ~Engine();
-
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
-
     bool valid() const { return window_ != nullptr && renderer_ != nullptr; }
     bool pump_events();
     void update(float dt);
     void render();
-
+    SDL_Renderer* renderer() const { return renderer_; }
     PhysicsWorld& physics() { return physics_; }
     LivingObject& world_object() { return object_; }
-
 private:
     SDL_Window* window_{};
     SDL_Renderer* renderer_{};
