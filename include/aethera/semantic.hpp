@@ -47,7 +47,7 @@ struct SemanticObject {
 class SemanticAnalyzer {
 public:
     SemanticObject classify(const ImageAnalysisResult& analysis) const;
-    void infer_skeleton(SemanticObject& object) const;
+    void infer_skeleton(const ImageAnalysisResult& analysis, SemanticObject& object) const;
     ImageObject build_image_object(const ImageRgba8& image,
                                    const ImageAnalysisResult& analysis,
                                    const SemanticObject& semantic) const;
