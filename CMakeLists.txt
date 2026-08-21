@@ -9,10 +9,11 @@ find_package(SDL2 REQUIRED)
 
 add_library(aethera
     src/engine.cpp
+    src/image.cpp
+    src/image_object.cpp
     src/object.cpp
     src/physics.cpp
     src/renderer.cpp
-    src/image.cpp
 )
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
