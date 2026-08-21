@@ -1,5 +1,6 @@
 #include "aethera/image_object.hpp"
 
+#include <cmath>
 #include <stdexcept>
 
 namespace aethera {
