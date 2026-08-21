@@ -32,6 +32,7 @@ add_library(aethera
     src/skinning.cpp
     src/script_scene.cpp
     src/vision.cpp
+    src/vision_model.cpp
 )
 
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -90,6 +91,8 @@ add_executable(aethera_vision_test tests/vision_test.cpp)
 target_link_libraries(aethera_vision_test PRIVATE aethera)
 add_executable(aethera_onnx_vision_test tests/onnx_vision_test.cpp)
 target_link_libraries(aethera_onnx_vision_test PRIVATE aethera)
+add_executable(aethera_vision_model_test tests/vision_model_test.cpp)
+target_link_libraries(aethera_vision_model_test PRIVATE aethera)
 
 install(TARGETS aethera aethera_demo)
 install(DIRECTORY include/ DESTINATION include)
