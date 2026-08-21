@@ -1,6 +1,7 @@
 #include "aethera/engine.hpp"
 
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 
 namespace aethera {
@@ -60,6 +61,123 @@ void make_demo(LivingObject& object, PhysicsWorld& physics) {
     object.add_part({"right_foot", PartKind::Point, 10, 8.0f, 5.0f});
 }
 
+void put_pixel(ImageRgba8& image, int x, int y, std::uint8_t r, std::uint8_t g,
+               std::uint8_t b, std::uint8_t a = 255) {
+    if (x < 0 || y < 0 || x >= image.width || y >= image.height) return;
+    const std::size_t index = static_cast<std::size_t>((y * image.width + x) * 4);
+    image.pixels[index + 0] = r;
+    image.pixels[index + 1] = g;
+    image.pixels[index + 2] = b;
+    image.pixels[index + 3] = a;
+}
+
+void fill_rect(ImageRgba8& image, int x, int y, int w, int h,
+               std::uint8_t r, std::uint8_t g, std::uint8_t b) {
+    for (int yy = y; yy < y + h; ++yy) {
+        for (int xx = x; xx < x + w; ++xx) {
+            put_pixel(image, xx, yy, r, g, b);
+        }
+    }
+}
+
+void fill_circle(ImageRgba8& image, int cx, int cy, int radius,
+                 std::uint8_t r, std::uint8_t g, std::uint8_t b) {
+    const int radius_sq = radius * radius;
+    for (int y = cy - radius; y <= cy + radius; ++y) {
+        for (int x = cx - radius; x <= cx + radius; ++x) {
+            const int dx = x - cx;
+            const int dy = y - cy;
+            if (dx * dx + dy * dy <= radius_sq) {
+                put_pixel(image, x, y, r, g, b);
+            }
+        }
+    }
+}
+
+void make_demo_image(ImageRgba8& image) {
+    image.width = 256;
+    image.height = 128;
+    image.pixels.assign(static_cast<std::size_t>(image.width * image.height * 4), 0);
+
+    // A tiny image atlas. Each region is an ordinary image part; Aethera does not
+    // require the visual to know anything about bones or physics.
+    fill_circle(image, 32, 32, 22, 235, 205, 170);     // head
+    fill_rect(image, 72, 12, 48, 80, 55, 110, 195);    // torso
+    fill_rect(image, 128, 20, 64, 18, 220, 90, 80);    // arm
+    fill_rect(image, 128, 50, 64, 18, 220, 90, 80);    // second arm
+    fill_rect(image, 200, 8, 24, 80, 80, 200, 120);   // leg
+    fill_rect(image, 228, 8, 24, 80, 80, 200, 120);   // second leg
+}
+
+void make_image_object(ImageObject& object, const ImageRgba8& image) {
+    object.set_image(&image);
+
+    ImageNode root;
+    root.name = "character_root";
+    root.visual.name = "atlas_root";
+    root.visual.source = Rect{0.0f, 0.0f, 256.0f, 128.0f};
+    root.visual.pivot = {0.5f, 0.5f};
+    root.local.position = {480.0f, 300.0f};
+    root.local.scale = {0.75f, 0.75f};
+    const std::size_t root_id = object.add_node(root);
+
+    ImageNode head;
+    head.name = "head";
+    head.parent = root_id;
+    head.visual.name = "head";
+    head.visual.source = Rect{0.0f, 0.0f, 64.0f, 64.0f};
+    head.visual.pivot = {0.5f, 0.5f};
+    head.local.position = {-90.0f, -45.0f};
+    object.add_node(head);
+
+    ImageNode torso;
+    torso.name = "torso";
+    torso.parent = root_id;
+    torso.visual.name = "torso";
+    torso.visual.source = Rect{64.0f, 0.0f, 64.0f, 96.0f};
+    torso.visual.pivot = {0.5f, 0.5f};
+    torso.local.position = {-30.0f, 5.0f};
+    object.add_node(torso);
+
+    ImageNode arm_a;
+    arm_a.name = "arm_a";
+    arm_a.parent = root_id;
+    arm_a.visual.name = "arm_a";
+    arm_a.visual.source = Rect{128.0f, 16.0f, 64.0f, 24.0f};
+    arm_a.visual.pivot = {0.05f, 0.5f};
+    arm_a.local.position = {22.0f, -5.0f};
+    object.add_node(arm_a);
+
+    ImageNode arm_b;
+    arm_b.name = "arm_b";
+    arm_b.parent = root_id;
+    arm_b.visual.name = "arm_b";
+    arm_b.visual.source = Rect{128.0f, 48.0f, 64.0f, 24.0f};
+    arm_b.visual.pivot = {0.05f, 0.5f};
+    arm_b.local.position = {22.0f, 28.0f};
+    object.add_node(arm_b);
+
+    ImageNode leg_a;
+    leg_a.name = "leg_a";
+    leg_a.parent = root_id;
+    leg_a.visual.name = "leg_a";
+    leg_a.visual.source = Rect{192.0f, 0.0f, 32.0f, 96.0f};
+    leg_a.visual.pivot = {0.5f, 0.1f};
+    leg_a.local.position = {-18.0f, 52.0f};
+    object.add_node(leg_a);
+
+    ImageNode leg_b;
+    leg_b.name = "leg_b";
+    leg_b.parent = root_id;
+    leg_b.visual.name = "leg_b";
+    leg_b.visual.source = Rect{224.0f, 0.0f, 32.0f, 96.0f};
+    leg_b.visual.pivot = {0.5f, 0.1f};
+    leg_b.local.position = {10.0f, 52.0f};
+    object.add_node(leg_b);
+
+    object.update_world_transforms();
+}
+
 } // namespace
 
 Engine::Engine(int width, int height, const char* title) {
@@ -82,10 +200,16 @@ Engine::Engine(int width, int height, const char* title) {
         return;
     }
 
+    image_renderer_ = std::make_unique<ImageRenderer>(renderer_);
+
     make_demo(object_, physics_);
+    make_demo_image(demo_image_);
+    make_image_object(image_object_, demo_image_);
 }
 
 Engine::~Engine() {
+    image_renderer_.reset();
+
     if (renderer_ != nullptr) {
         SDL_DestroyRenderer(renderer_);
     }
@@ -111,20 +235,40 @@ bool Engine::pump_events() {
 void Engine::update(float dt) {
     elapsed_ += dt;
 
-    // The pinned root is our first procedural animation anchor.
-    // A future rig will replace this with an explicit animation graph.
+    // Physics demo remains independent from image animation.
     auto& root = physics_.points()[0];
     const float base_y = 340.0f;
     root.position.y = base_y + std::sin(elapsed_ * 2.2f) * 2.5f;
     root.previous_position = root.position;
-
     physics_.step(dt);
+
+    // Procedural image motion: the image is split into parts and each part can
+    // move independently without changing the source pixels.
+    if (image_object_.nodes().size() >= 7) {
+        auto& root_node = image_object_.nodes()[0];
+        auto& head = image_object_.nodes()[1];
+        auto& arm_a = image_object_.nodes()[3];
+        auto& arm_b = image_object_.nodes()[4];
+        auto& leg_a = image_object_.nodes()[5];
+        auto& leg_b = image_object_.nodes()[6];
+
+        root_node.local.position.y = 300.0f + std::sin(elapsed_ * 2.0f) * 6.0f;
+        root_node.local.rotation = std::sin(elapsed_ * 0.8f) * 0.025f;
+        head.local.rotation = std::sin(elapsed_ * 2.0f) * 0.05f;
+        arm_a.local.rotation = std::sin(elapsed_ * 3.5f) * 0.35f;
+        arm_b.local.rotation = std::sin(elapsed_ * 3.5f + 1.57f) * 0.35f;
+        leg_a.local.rotation = std::sin(elapsed_ * 2.5f) * 0.18f;
+        leg_b.local.rotation = -std::sin(elapsed_ * 2.5f) * 0.18f;
+
+        image_object_.update_world_transforms();
+    }
 }
 
 void Engine::render() {
     Renderer renderer(renderer_);
     renderer.begin();
     renderer.living_object(object_, physics_);
+    image_renderer_->draw(image_object_);
     renderer.end();
 }
 
