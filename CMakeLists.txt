@@ -7,8 +7,9 @@ find_package(SDL2 REQUIRED)
 find_package(SDL2_image QUIET)
 add_library(aethera
     src/engine.cpp src/object.cpp src/physics.cpp src/renderer.cpp src/mesh.cpp
-    src/mesh_renderer.cpp src/animated_image.cpp src/texture_loader.cpp src/adaptive_mesh.cpp
-    src/shape_mesh.cpp src/skeleton_pose.cpp)
+    src/mesh_renderer.cpp src/animated_image.cpp src/texture_loader.cpp src/image_loader.cpp
+    src/adaptive_mesh.cpp src/shape_mesh.cpp src/skeleton_pose.cpp src/image_pipeline.cpp
+    src/animation_controller.cpp)
 target_include_directories(aethera PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(aethera PUBLIC SDL2::SDL2)
 target_compile_features(aethera PUBLIC cxx_std_20)
